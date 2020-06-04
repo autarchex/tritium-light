@@ -7,15 +7,15 @@ $fn = 16;
 
 //"gt" refers to "glow tube"
 gt_L = 25;                  //length of tritium glow tube
-gt_r = 1;                       //radius of tritium glow tube
+gt_r = 3 / 2;                       //radius of tritium glow tube
 slop_r = 0.2;               //additional radius to accomodate variation / aid insertion
 slop_L = 0.5;            //additional length to accomodate variation in gt_L
 
-T = 1.5;                        //wall thickness (minimum)
-cap_plug_L = T*3;     //how far the cap's plug extends into the glowtube channel
+T = 0.9;                        //wall thickness (minimum)
+cap_plug_L = T*2;     //how far the cap's plug extends into the glowtube channel
 cap_head_L = cap_plug_L / 2;    //length of head portion of cap (external portion)
 fillet_r = 1;                   //fillet radius
-keychain_hole_r = 1;    //radius of hole that keychain attaches to
+keychain_hole_r = 3.5;    //radius of hole that keychain attaches to
 
 body_core_x = 2*(gt_r + T - fillet_r);
 body_core_y = body_core_x;
@@ -50,7 +50,41 @@ difference() {
     }
     
     //bore out the keychain hole
-    translate( [0,0,0] ) {
-        cylinder( r=keychain_hole_r, h=50 );
-    }   
+    translate( [0,25,body_L - T - keychain_hole_r/2] ) {
+        rotate( a=[90,0,0] ) {
+            cylinder( r=keychain_hole_r, h=50 );
+        }
+    }
 }
+
+//construct the cap
+translate( [0,0,-20]){      //get it out of the way
+    union() {
+        //an axially centered filleted rectangular prism with an end sliced off
+        translate( [-body_core_x / 2, -body_core_y / 2, 0] ){       //centering operation
+                difference() {
+                    minkowski() {                                                                               //fillet
+                        //a rectangular prism 10 longer than necessary
+                        cube( size=[body_core_x, body_core_y, cap_head_L+10] );
+                        //a sphere forms the fillet surface of the body via minkowski summation
+                        sphere( r=fillet_r );
+                    }
+                    //cutting cube
+                    translate( [body_core_x/2-5,body_core_y/2-5,cap_plug_L] ) {
+                        cube( size=[body_core_x+10, body_core_y+10, cap_plug_L+10] );
+                    }
+                }
+                
+            }
+           //add the plug
+            translate( [0,0 , cap_head_L + cap_plug_L/2 - 0.001] ) {
+               cylinder( r=channel_r*0.95, h=cap_plug_L );
+           }
+     }           
+        
+   
+}
+            
+
+    
+    
